@@ -8,7 +8,7 @@ const env = {
   DATABASE_URL: 'file:../data/demo.db',
   UPLOAD_DIR: './data/demo-uploads',
 };
-const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const npmCli = process.env.npm_execpath;
 
 function run(command, args, cwd) {
   const result = spawnSync(command, args, {
@@ -29,5 +29,10 @@ run(
   ],
   backend,
 );
-run(npm, ['run', 'db:deploy'], backend);
+if (!npmCli) {
+  throw new Error(
+    'Inicie a preparação com "npm run demo:setup" para localizar o npm corretamente.',
+  );
+}
+run(process.execPath, [npmCli, 'run', 'db:deploy'], backend);
 run(process.execPath, ['scripts/seed-demo.js'], backend);

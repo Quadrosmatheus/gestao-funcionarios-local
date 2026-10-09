@@ -69,7 +69,7 @@ function App() {
             <small>PESSOAS & ROTINA</small>
           </span>
         </div>
-        <div className="nav-scroll">
+        <nav className="nav-scroll" aria-label="Navegação principal">
           {groups
             .filter((group) => group[0] !== 'GESTÃO' || user.funcao === 'ADMIN')
             .map(([groupName, items]) => (
@@ -79,6 +79,7 @@ function App() {
                   <button
                     key={key}
                     className={`nav-item ${page === key ? 'selected' : ''}`}
+                    aria-current={page === key ? 'page' : undefined}
                     onClick={() => setPage(key)}
                   >
                     <span>{icon}</span>
@@ -87,7 +88,7 @@ function App() {
                 ))}
               </div>
             ))}
-        </div>
+        </nav>
         <div className="sidebar-bottom">
           <div className="local-badge">
             <i /> Dados armazenados neste computador

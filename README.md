@@ -101,6 +101,14 @@ npm run dev:demo
 
 O primeiro comando cria `backend/data/demo.db`, aplica as migrações, inclui nomes e contatos inventados e mostra uma senha aleatória temporária no terminal. Entre com `demo.admin@local.test` e essa senha em `http://127.0.0.1:5173`. A demonstração nunca utiliza o banco padrão `funcionarios.db`. Para recriá-la, pare os servidores e apague apenas `backend/data/demo.db` antes de executar `npm run demo:setup` novamente.
 
+O repositório contém o código e uma demonstração local; não há versão hospedada para acesso público. Cada pessoa deve gerar a própria base demo e usar a senha temporária que o comando exibe. Não publique senhas, tokens, banco, anexos ou backups.
+
+## Apresentação pública
+
+O repositório pode ser tornado público pelo titular, mas o aplicativo continua local e não terá um link de demonstração online. Para avaliar a interface, use a demo fictícia descrita acima. O projeto não inclui licença de código aberto: todos os direitos permanecem reservados ao titular.
+
+Em telas estreitas, a navegação pode ser percorrida horizontalmente; tabelas largas também permitem rolagem lateral. Os controles de rolagem podem receber foco pelo teclado.
+
 ## Backup e restauração
 
 `npm run backup` cria uma pasta datada dentro de `backend/backups/` com snapshot SQLite e documentos. Essa pasta está ignorada pelo Git porque pode conter dados pessoais. Faça cópias apenas para um local protegido.

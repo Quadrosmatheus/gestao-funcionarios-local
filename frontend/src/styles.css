@@ -126,6 +126,11 @@ button:disabled {
   background: #1b4b39;
   color: white;
 }
+.nav-item:focus-visible,
+.table-wrap:focus-visible {
+  outline: 3px solid #8fc7a4;
+  outline-offset: 2px;
+}
 .nav-item.selected {
   background: #e4f1e9;
   color: #164631;
@@ -980,6 +985,10 @@ td strong {
     gap: 7px;
     padding: 0 12px 12px;
     overflow: auto;
+    scroll-padding-inline: 12px;
+    scroll-snap-type: x proximity;
+    scrollbar-color: #86a797 #143a2d;
+    scrollbar-width: thin;
   }
   .nav-group {
     display: flex;
@@ -992,9 +1001,11 @@ td strong {
   }
   .nav-item {
     width: auto;
+    flex: 0 0 auto;
     white-space: nowrap;
     padding: 9px;
     font-size: 10px;
+    scroll-snap-align: start;
   }
   .sidebar-bottom {
     display: none;
@@ -1120,6 +1131,11 @@ td strong {
   }
   .panel-title {
     padding: 17px;
+  }
+  .table-wrap {
+    overscroll-behavior-inline: contain;
+    scrollbar-color: #c5d1c9 #f4f7f4;
+    scrollbar-width: thin;
   }
   .table-panel .panel-title {
     padding-bottom: 10px;

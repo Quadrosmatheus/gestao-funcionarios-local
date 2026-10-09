@@ -117,7 +117,12 @@ export function Employees() {
       </div>
       <section className="panel table-panel">
         {rows.length ? (
-          <div className="table-wrap">
+          <div
+            className="table-wrap"
+            tabIndex={0}
+            role="region"
+            aria-label="Tabela de funcionários. Role horizontalmente para ver as colunas."
+          >
             <table>
               <thead>
                 <tr>

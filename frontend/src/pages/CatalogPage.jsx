@@ -97,7 +97,12 @@ export function CatalogPage({ kind, title, singular }) {
       <Error text={error} />
       <section className="panel table-panel">
         {rows.length ? (
-          <div className="table-wrap">
+          <div
+            className="table-wrap"
+            tabIndex={0}
+            role="region"
+            aria-label={`Tabela de ${title.toLowerCase()}. Role horizontalmente para ver as colunas.`}
+          >
             <table>
               <thead>
                 <tr>

@@ -91,7 +91,12 @@ export function Attendance() {
           <h3>Últimas marcações</h3>
         </div>
         {rows.length ? (
-          <div className="table-wrap">
+          <div
+            className="table-wrap"
+            tabIndex={0}
+            role="region"
+            aria-label="Tabela de ponto. Role horizontalmente para ver as colunas."
+          >
             <table>
               <thead>
                 <tr>
