@@ -27,4 +27,5 @@ jobs:
           DATABASE_URL: file:./data/ci.db
           JWT_SECRET: ci-only-secret-with-at-least-32-characters
       - run: npm test
+      - run: npm run format:check
       - run: npm run build

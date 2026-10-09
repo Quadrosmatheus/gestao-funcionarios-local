@@ -1,39 +1,43 @@
 # Relatório de preparação — Gestão de Funcionários
 
 Data: 09/10/2026
-Destino: `https://github.com/developmatheus/gestao-funcionarios-local` (repositório privado)
+Repositório: `https://github.com/developmatheus/gestao-funcionarios-local` (privado, branch `main`)
 
-## Organização e conteúdo
+## Preparação para portfólio
 
-- Estrutura organizada em `frontend/` (React/Vite), `backend/` (Express/Prisma), migrações, scripts locais e testes.
-- README refeito com funcionalidades observadas no código, tecnologias, instalação, uso, comandos, estrutura, privacidade e limitações.
-- Workflow do GitHub Actions adicionado para build da interface e testes de domínio.
-- Scripts garantem a criação dos diretórios SQLite e uploads em uma instalação nova.
-- Regras Git ignoram banco, journal SQLite, documentos, dependências, build e todos os arquivos `.env`, preservando apenas `.env.example`.
-- Sem licença permissiva: o README informa que os direitos permanecem reservados.
+- Separei a interface React em páginas, componentes, serviços de API e constantes de navegação.
+- Organizei a API Express em configuração, rotas, middleware e cliente Prisma.
+- Atualizei o README com instalação, funcionalidades, estrutura, arquitetura, privacidade, demo e comandos de backup/restauração.
+- Configurei Prettier e verificação de estilo no GitHub Actions, junto ao build e aos testes.
+- Criei um modo demo isolado, com dados inteiramente fictícios e banco e uploads separados da instalação local.
+- Fiz capturas da visão geral, funcionários e férias/ausências durante a demo fictícia; elas foram exibidas nesta conversa.
 
-## Revisão de segurança e correções
+## Segurança e manutenção
 
-- Verificados arquivos e padrões comuns de tokens/chaves; não foram encontrados segredos versionáveis. O `backend/.env` local, banco e uploads estão ignorados.
-- Autorização agora consulta se a conta segue ativa em cada requisição autenticada, então desativação revoga o acesso imediatamente.
-- Upload compara extensão/tipo declarado e assinatura básica de PDF/JPG/PNG.
-- Validação de CPF passou a verificar dígitos verificadores.
-- Criação do administrador exige terminal interativo para evitar exibir a senha em entrada redirecionada.
-- Mantidos controles já existentes: API vinculada a `127.0.0.1`, limite de tentativas de login, JWT com expiração e bcrypt.
+- Senhas ficam com hash bcrypt. A troca exige senha atual, mínimo de 12 caracteres e revoga sessões anteriores.
+- A API verifica status da conta e versão de sessão em cada requisição autenticada.
+- A auditoria recente é acessível somente a administradores.
+- Upload valida extensão, tipo informado e assinatura básica de PDF/JPG/PNG.
+- CPF é validado por dígitos verificadores; CSV neutraliza fórmulas comuns.
+- Criei comandos de backup e restauração local, com confirmação explícita antes de restaurar e cópia preventiva.
+- Banco, anexos, backups, dependências, builds e arquivos `.env` permanecem ignorados pelo Git; só `.env.example` é versionado.
+- Não encontrei credenciais versionáveis na inspeção desta revisão.
 
-## Verificações
+## Verificações executadas
 
-- Testes: 8 aprovados, 0 falharam.
-- Build de produção: concluído.
-- Cliente Prisma gerado e esquema previamente validado.
-- `npm audit`: 0 vulnerabilidades reportadas na raiz, backend e frontend.
-- Smoke test anterior confirmou API saudável e interface servida em localhost.
+- `npm test`: 9 testes aprovados, 0 falhas.
+- `npm run format:check`: aprovado.
+- `npm run build`: build de produção concluído.
+- `npm run db:deploy`: sem migrações pendentes.
+- `npm audit` (raiz, backend e frontend): 0 vulnerabilidades reportadas.
+- A demonstração local foi conferida visualmente com nomes e e-mails fictícios.
 
-## Limites conhecidos
+## Limitações conhecidas
 
-A aplicação não criptografa o banco ou anexos em repouso, não oferece recuperação de senha, backup automático, cálculo de folha/encargos, validação de saldo legal de férias ou certificação de ponto. Os CSVs são relatórios de apoio. Use dados reais somente após revisar política de acesso, retenção, backups protegidos e requisitos trabalhistas aplicáveis.
+A aplicação é local e não criptografa banco ou anexos em repouso. Ainda não oferece recuperação de senha, backup automático, cálculo de folha/encargos, validação de saldo legal de férias ou certificação de ponto. Os relatórios de ponto são estimativas baseadas nas marcações inseridas. Não use dados pessoais reais sem definir controles de acesso, retenção e backups protegidos.
+
+O projeto não inclui licença permissiva: todos os direitos permanecem reservados ao titular. O repositório continua privado; o titular decide quando torná-lo público.
 
 ## GitHub
 
-O repositório novo foi criado como privado, sem README automático nem licença gerada pelo GitHub, para preservar o README local preparado e os direitos reservados. Primeiro commit enviado: `fe2239c` (`Prepare local employee management portfolio repository`), branch `main`.
-
+As melhorias foram enviadas para `main` no repositório privado indicado acima. A execução do GitHub Actions para o novo commit deve ser conferida após o push.

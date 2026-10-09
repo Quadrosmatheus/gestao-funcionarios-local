@@ -14,6 +14,7 @@ model User {
   senha        String
   funcao       String      @default("ADMIN")
   ativo        Boolean     @default(true)
+  sessionVersion Int       @default(0)
   criadoEm     DateTime    @default(now())
   atualizadoEm DateTime    @updatedAt
   aprovacoes   Ausencia[]  @relation("Aprovador")

@@ -1,21 +1,143 @@
-import { useEffect,useState } from 'react';
+import { useEffect, useState } from 'react';
+import { groups, titleFor } from './constants/navigation';
+import { Attendance } from './pages/Attendance';
+import { Audit } from './pages/Audit';
+import { CatalogPage } from './pages/CatalogPage';
+import { Dashboard } from './pages/Dashboard';
+import { Employees } from './pages/Employees';
+import { Leaves } from './pages/Leaves';
+import { Login } from './pages/Login';
+import { Reports } from './pages/Reports';
+import { PasswordChange } from './pages/PasswordChange';
+import { Users } from './pages/Users';
+import { api } from './services/api';
 
-const groups=[['VISÃO GERAL',[['dashboard','Visão geral','⌂']]],['PESSOAS',[['employees','Funcionários','♙'],['departments','Departamentos','▦'],['roles','Cargos','◇'],['schedules','Jornadas','◷']]],['ROTINA',[['attendance','Registro de ponto','◉'],['leaves','Férias e ausências','▤']]],['GESTÃO',[['users','Acessos','♧'],['reports','Relatórios','▥']]]];
-const titleFor=Object.fromEntries(groups.flatMap(g=>g[1].map(x=>[x[0],x[1]])));
-async function api(path,options={}){const headers={...(options.body instanceof FormData?{}:{'Content-Type':'application/json'}),...(options.headers||{})};const t=sessionStorage.getItem('rh_token');if(t)headers.Authorization=`Bearer ${t}`;const r=await fetch(`/api${path}`,{...options,headers});if(!r.ok){const data=await r.json().catch(()=>({}));throw new Error(data.error||`Erro ${r.status}`)}return r.status===204?null:r.headers.get('content-type')?.includes('application/json')?r.json():r}
-const localDate=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
-function App(){const[user,setUser]=useState(null),[page,setPage]=useState('dashboard'),[boot,setBoot]=useState(true);useEffect(()=>{const t=sessionStorage.getItem('rh_token');if(!t){setBoot(false);return}api('/auth/me').then(setUser).catch(()=>sessionStorage.removeItem('rh_token')).finally(()=>setBoot(false))},[]);async function login(email,senha){const r=await api('/auth/login',{method:'POST',body:JSON.stringify({email,senha})});sessionStorage.setItem('rh_token',r.token);setUser(r.user)}function logout(){sessionStorage.removeItem('rh_token');setUser(null)}if(boot)return <div className="loading">Abrindo seu espaço de gestão…</div>;if(!user)return <Login onLogin={login}/>;return <div className="shell"><aside className="sidebar"><div className="brand"><span className="brand-icon">g</span><span>gestão<span className="brand-light">.local</span><small>PESSOAS & ROTINA</small></span></div><div className="nav-scroll">{groups.filter(g=>g[0]!=='GESTÃO'||user.funcao==='ADMIN').map(([group,items])=><div className="nav-group" key={group}><p>{group}</p>{items.map(([key,label,icon])=><button key={key} className={`nav-item ${page===key?'selected':''}`} onClick={()=>setPage(key)}><span>{icon}</span>{label}</button>)}</div>)}</div><div className="sidebar-bottom"><div className="local-badge"><i/> Dados armazenados neste computador</div><div className="user-mini"><div className="avatar">{user.nome[0]?.toUpperCase()}</div><div className="user-info"><strong>{user.nome}</strong><small>{user.funcao==='ADMIN'?'Administrador':'RH'}</small></div><button className="icon-btn" title="Sair" onClick={logout}>↗</button></div></div></aside><main className="main"><header className="topbar"><div><span className="eyebrow">GESTÃO DE PESSOAS</span><h1>{titleFor[page]}</h1></div><div className="top-actions"><span className="local-chip">● Ambiente local</span><span className="date-chip">{new Intl.DateTimeFormat('pt-BR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}).format(new Date())}</span></div></header><div className="content">{page==='dashboard'?<Dashboard go={setPage}/>:page==='employees'?<Employees/>:page==='departments'?<CatalogPage kind="departments" title="Departamentos" singular="departamento"/>:page==='roles'?<CatalogPage kind="roles" title="Cargos" singular="cargo"/>:page==='schedules'?<CatalogPage kind="schedules" title="Jornadas" singular="jornada"/>:page==='attendance'?<Attendance/>:page==='leaves'?<Leaves/>:page==='users'?<Users current={user}/>:<Reports/>}</div><footer className="app-footer">Gestão local · Dados pessoais ficam no banco deste computador</footer></main></div>}
-function Login({onLogin}){const[email,setEmail]=useState(''),[senha,setSenha]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);async function submit(e){e.preventDefault();setBusy(true);setError('');try{await onLogin(email,senha)}catch(e){setError(e.message)}finally{setBusy(false)}}return <div className="login-page"><div className="login-aside"><div className="brand brand-login"><span className="brand-icon">g</span><span>gestão<span className="brand-light">.local</span><small>PESSOAS & ROTINA</small></span></div><div className="login-copy"><div className="spark">✳</div><span className="eyebrow">UM ESPAÇO PARA CUIDAR DE QUEM FAZ</span><h1>O trabalho flui<br/>quando as pessoas<br/><em>estão bem.</em></h1><p>Organize a equipe, acompanhe a rotina e tenha uma visão clara da operação.</p></div><div className="login-aside-foot">PRIVADO POR PADRÃO <span>·</span> EXECUTADO LOCALMENTE</div></div><div className="login-main"><form className="login-card" onSubmit={submit}><div className="login-mobile-brand">gestão.local</div><span className="eyebrow">BEM-VINDO DE VOLTA</span><h2>Acesse seu painel</h2><p>Entre com a conta administrativa configurada neste computador.</p>{error&&<Error text={error}/>}<label>E-mail<input type="email" autoComplete="username" value={email} onChange={e=>setEmail(e.target.value)} required/></label><label>Senha<input type="password" autoComplete="current-password" value={senha} onChange={e=>setSenha(e.target.value)} required/></label><button className="btn primary full" disabled={busy}>{busy?'Entrando…':'Entrar no painel'} <span>→</span></button><div className="secure-note">▣ Acesso protegido e restrito ao ambiente local</div></form></div></div>}
-function Error({text}){return text?<div className="alert error">{text}</div>:null}function Heading({title,sub,action}){return <div className="page-heading"><div><h2>{title}</h2><p>{sub}</p></div>{action}</div>}function Empty({children}){return <div className="empty"><span>◌</span><strong>{children}</strong><small>Os registros aparecerão aqui quando forem adicionados.</small></div>}function Field({label,value,onChange,type='text',required=false}){return <label className="field"><span>{label}{required?' *':''}</span><input type={type} value={value??''} onChange={e=>onChange(e.target.value)} required={required}/></label>}function Select({label,value,options,onChange,required=false}){return <label className="field"><span>{label}{required?' *':''}</span><select value={value||''} onChange={e=>onChange(e.target.value)} required={required}><option value="">Selecione…</option>{options.map(x=><option key={x.id} value={x.id}>{x.nome}</option>)}</select></label>}
-function Modal({title,onClose,children}){return <div className="modal-backdrop" onMouseDown={e=>e.target===e.currentTarget&&onClose()}><div className="modal"><div className="modal-head"><div><span className="eyebrow">GESTÃO DE PESSOAS</span><h2>{title}</h2></div><button className="icon-btn" onClick={onClose}>×</button></div>{children}</div></div>}function Actions({onCancel,busy}){return <div className="modal-actions"><button type="button" className="btn secondary" onClick={onCancel}>Cancelar</button><button className="btn primary" disabled={busy}>{busy?'Salvando…':'Salvar'}</button></div>}
-function Dashboard({go}){const[d,setD]=useState(null),[error,setError]=useState('');useEffect(()=>{api('/dashboard').then(setD).catch(e=>setError(e.message))},[]);const stats=d?.resumo;return <><div className="welcome"><div><span className="eyebrow">SEU RESUMO</span><h2>Bom dia. Vamos cuidar da equipe?</h2><p>Uma visão simples do que está acontecendo hoje.</p></div><div className="welcome-mark">✳</div></div><Error text={error}/><div className="stats-grid">{[['PESSOAS ATIVAS',stats?.ativos,'No quadro de funcionários','♙',''],['EM AFASTAMENTO',stats?.afastados,'Ausência aprovada hoje','◷','amber'],['PONTO DE HOJE',stats?.registrosPontoHoje,'Marcações registradas','◉','blue'],['PENDÊNCIAS',stats?.solicitacoesPendentes,'Solicitações para revisar','▤','rose']].map(x=><div className="stat-card" key={x[0]}><div className={`stat-icon ${x[4]}`}>{x[3]}</div><span>{x[0]}</span><strong>{x[1]??'—'}</strong><small>{x[2]}</small></div>)}</div><div className="dashboard-grid"><section className="panel"><div className="panel-title"><div><span className="eyebrow">ACOMPANHAMENTO</span><h3>Novas pessoas</h3></div><button className="text-btn" onClick={()=>go('employees')}>Ver equipe →</button></div>{d?.recentes?.length?<div className="recent-list">{d.recentes.map(x=><div className="recent-row" key={x.id}><div className="avatar soft">{x.nome[0]}</div><div className="grow"><strong>{x.nome}</strong><small>{x.cargo?.nome||'Cargo não definido'}</small></div><span className="tag green-tag">Ativo</span></div>)}</div>:<Empty>{d?'Nenhum funcionário cadastrado':'Carregando dados…'}</Empty>}</section><section className="panel side-note"><span className="eyebrow">LEMBRETE DE PRIVACIDADE</span><div className="privacy-symbol">♧</div><h3>Dados sob seus cuidados</h3><p>Este sistema armazena dados pessoais e documentos neste computador. Proteja o acesso e mantenha uma cópia de segurança local.</p><div className="privacy-line"><i/> Banco local ativo</div></section></div></>}
-const catalogConfig={departments:{path:'departments',fields:[['nome','Nome',true],['descricao','Descrição',false]]},roles:{path:'roles',fields:[['nome','Nome',true],['descricao','Descrição',false]]},schedules:{path:'schedules',fields:[['nome','Nome',true],['entrada','Entrada','time'],['saida','Saída','time'],['pausaInicio','Pausa começa','time'],['pausaFim','Pausa termina','time'],['descricao','Descrição',false]]}};
-function CatalogPage({kind,title,singular}){const cfg=catalogConfig[kind],[rows,setRows]=useState([]),[form,setForm]=useState(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);async function load(){try{setRows(await api(`/${cfg.path}`));setError('')}catch(e){setError(e.message)}}useEffect(()=>{load()},[kind]);function blank(){const x={nome:'',descricao:''};if(kind==='schedules')Object.assign(x,{entrada:'09:00',saida:'18:00',pausaInicio:'12:00',pausaFim:'13:00'});return x}async function save(e){e.preventDefault();setBusy(true);try{await api(`/${cfg.path}${form.id?`/${form.id}`:''}`,{method:form.id?'PATCH':'POST',body:JSON.stringify(form)});setForm(null);load()}catch(e){setError(e.message)}finally{setBusy(false)}}async function deactivate(x){if(!confirm(`Desativar ${x.nome}?`))return;try{await api(`/${cfg.path}/${x.id}`,{method:'DELETE'});load()}catch(e){setError(e.message)}}return <><Heading title={title} sub={`Cadastre e organize ${kind==='schedules'?'os horários de trabalho':'a estrutura da equipe'}.`} action={<button className="btn primary" onClick={()=>setForm(blank())}>＋ Novo {singular}</button>}/><Error text={error}/><section className="panel table-panel">{rows.length?<div className="table-wrap"><table><thead><tr><th>NOME</th>{kind==='schedules'&&<><th>ENTRADA</th><th>SAÍDA</th><th>PAUSA</th></>}<th>DESCRIÇÃO</th><th>STATUS</th><th></th></tr></thead><tbody>{rows.map(x=><tr key={x.id}><td><strong>{x.nome}</strong></td>{kind==='schedules'&&<><td>{x.entrada}</td><td>{x.saida}</td><td>{x.pausaInicio&&x.pausaFim?`${x.pausaInicio}–${x.pausaFim}`:'—'}</td></>}<td>{x.descricao||'—'}</td><td><span className={`tag ${x.ativo?'green-tag':'gray-tag'}`}>{x.ativo?'Ativo':'Inativo'}</span></td><td><div className="row-actions"><button className="icon-btn" onClick={()=>setForm({...x})}>✎</button>{x.ativo&&<button className="icon-btn danger-text" onClick={()=>deactivate(x)}>⌑</button>}</div></td></tr>)}</tbody></table></div>:<Empty>Nenhum {singular} cadastrado</Empty>}</section>{form&&<Modal title={`${form.id?'Editar':'Novo'} ${singular}`} onClose={()=>setForm(null)}><form className="form-grid" onSubmit={save}>{cfg.fields.map(([key,label,type])=><Field key={key} label={label} type={typeof type==='string'?type:'text'} value={form[key]||''} onChange={v=>setForm({...form,[key]:v})} required={type===true}/ >)}<Actions onCancel={()=>setForm(null)} busy={busy}/></form></Modal>}</>}
-function Employees(){const[rows,setRows]=useState([]),[refs,setRefs]=useState({departments:[],roles:[],schedules:[]}),[q,setQ]=useState(''),[inactive,setInactive]=useState(false),[form,setForm]=useState(null),[docs,setDocs]=useState(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);async function load(){try{const[e,d,r,s]=await Promise.all([api(`/employees?q=${encodeURIComponent(q)}&ativo=${inactive?'false':'true'}`),api('/departments'),api('/roles'),api('/schedules')]);setRows(e);setRefs({departments:d.filter(x=>x.ativo),roles:r.filter(x=>x.ativo),schedules:s.filter(x=>x.ativo)});setError('')}catch(e){setError(e.message)}}useEffect(()=>{load()},[q,inactive]);function edit(x){setError('');setForm(x?{...x,dataNascimento:x.dataNascimento?.slice(0,10)||'',admissaoEm:x.admissaoEm?.slice(0,10)||localDate()}:{nome:'',email:'',cpf:'',telefone:'',dataNascimento:'',admissaoEm:localDate(),cargoId:'',departamentoId:'',horarioId:''})}async function save(e){e.preventDefault();setBusy(true);try{await api(`/employees${form.id?`/${form.id}`:''}`,{method:form.id?'PATCH':'POST',body:JSON.stringify({...form,cargoId:form.cargoId||null,departamentoId:form.departamentoId||null,horarioId:form.horarioId||null})});setForm(null);await load()}catch(e){setError(e.message)}finally{setBusy(false)}}async function deactivate(x){if(!confirm(`Desligar ${x.nome}? O histórico será mantido.`))return;try{await api(`/employees/${x.id}`,{method:'DELETE'});load()}catch(e){setError(e.message)}}return <><Heading title="Sua equipe" sub="Cadastros, vínculos e documentos em um só lugar." action={<button className="btn primary" onClick={()=>edit(null)}>＋ Novo funcionário</button>}/><Error text={error}/><div className="toolbar"><div className="search"><span>⌕</span><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar por nome, e-mail ou CPF"/></div><label className="check-label"><input type="checkbox" checked={inactive} onChange={e=>setInactive(e.target.checked)}/> Ver desligados</label></div><section className="panel table-panel">{rows.length?<div className="table-wrap"><table><thead><tr><th>PESSOA</th><th>CARGO</th><th>DEPARTAMENTO</th><th>JORNADA</th><th>STATUS</th><th></th></tr></thead><tbody>{rows.map(x=><tr key={x.id}><td><div className="person-cell"><div className="avatar soft">{x.nome[0]}</div><div><strong>{x.nome}</strong><small>{x.email||'Sem e-mail informado'}</small></div></div></td><td>{x.cargo?.nome||'—'}</td><td>{x.departamento?.nome||'—'}</td><td>{x.horario?.nome||'—'}</td><td><span className={`tag ${x.ativo?'green-tag':'gray-tag'}`}>{x.ativo?'Ativo':'Desligado'}</span></td><td><div className="row-actions"><button className="icon-btn" title="Documentos" onClick={()=>setDocs(x)}>▤</button><button className="icon-btn" title="Editar" onClick={()=>edit(x)}>✎</button>{x.ativo&&<button className="icon-btn danger-text" title="Desligar" onClick={()=>deactivate(x)}>⌑</button>}</div></td></tr>)}</tbody></table></div>:<Empty>{q?'Nenhum resultado':'Nenhum funcionário cadastrado'}</Empty>}</section>{form&&<Modal title={form.id?'Editar funcionário':'Adicionar funcionário'} onClose={()=>setForm(null)}><form className="form-grid" onSubmit={save}><Field label="Nome completo" value={form.nome} onChange={v=>setForm({...form,nome:v})} required/><Field label="E-mail" type="email" value={form.email||''} onChange={v=>setForm({...form,email:v})}/><Field label="CPF" value={form.cpf||''} onChange={v=>setForm({...form,cpf:v})}/><Field label="Telefone" value={form.telefone||''} onChange={v=>setForm({...form,telefone:v})}/><Field label="Nascimento" type="date" value={form.dataNascimento||''} onChange={v=>setForm({...form,dataNascimento:v})}/><Field label="Admissão" type="date" value={form.admissaoEm||''} onChange={v=>setForm({...form,admissaoEm:v})}/><Select label="Cargo" value={form.cargoId} options={refs.roles} onChange={v=>setForm({...form,cargoId:v})}/><Select label="Departamento" value={form.departamentoId} options={refs.departments} onChange={v=>setForm({...form,departamentoId:v})}/><Select label="Jornada" value={form.horarioId} options={refs.schedules} onChange={v=>setForm({...form,horarioId:v})}/><Actions onCancel={()=>setForm(null)} busy={busy}/></form></Modal>}{docs&&<Documents employee={docs} onClose={()=>setDocs(null)}/>}</>}
-function Documents({employee,onClose}){const[rows,setRows]=useState([]),[error,setError]=useState(''),[busy,setBusy]=useState(false);async function load(){try{setRows(await api(`/employees/${employee.id}/documents`))}catch(e){setError(e.message)}}useEffect(()=>{load()},[employee.id]);async function upload(e){const file=e.target.files?.[0];if(!file)return;setBusy(true);const body=new FormData();body.append('arquivo',file);try{await api(`/employees/${employee.id}/documents`,{method:'POST',body});await load()}catch(e){setError(e.message)}finally{setBusy(false);e.target.value=''}}async function download(doc){try{const r=await api(`/documents/${doc.id}/download`);const u=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=u;a.download=doc.nomeOriginal;a.click();URL.revokeObjectURL(u)}catch(e){setError(e.message)}}return <Modal title={`Documentos · ${employee.nome}`} onClose={onClose}><Error text={error}/><p className="privacy-help">Armazenamento local · PDF, JPG ou PNG · máximo 5 MB</p><label className="upload-button">{busy?'Enviando…':'＋ Enviar documento'}<input type="file" accept="application/pdf,image/jpeg,image/png" onChange={upload} disabled={busy}/></label>{rows.length?<div className="document-list">{rows.map(d=><button key={d.id} onClick={()=>download(d)}><span>▤</span><strong>{d.nomeOriginal}</strong><small>{Math.ceil(d.tamanho/1024)} KB</small></button>)}</div>:<Empty>Nenhum documento anexado</Empty>}</Modal>}
-function Attendance(){const[rows,setRows]=useState([]),[people,setPeople]=useState([]),[form,setForm]=useState({funcionarioId:'',tipo:'ENTRADA',ocorridoEm:`${localDate()}T09:00`,observacao:''}),[error,setError]=useState(''),[busy,setBusy]=useState(false);async function load(){try{const[a,e]=await Promise.all([api('/attendance'),api('/employees?ativo=true')]);setRows(a);setPeople(e)}catch(e){setError(e.message)}}useEffect(()=>{load()},[]);async function save(e){e.preventDefault();setBusy(true);try{await api('/attendance',{method:'POST',body:JSON.stringify(form)});await load()}catch(e){setError(e.message)}finally{setBusy(false)}}return <><Heading title="Registro de ponto" sub="Lançamentos manuais para acompanhar a jornada da equipe."/><Error text={error}/><div className="panel form-panel"><div className="panel-title"><div><span className="eyebrow">NOVA MARCAÇÃO</span><h3>Registrar evento</h3></div></div><form className="inline-form" onSubmit={save}><Select label="Funcionário" value={form.funcionarioId} options={people} onChange={v=>setForm({...form,funcionarioId:v})} required/><label className="field"><span>Tipo</span><select value={form.tipo} onChange={e=>setForm({...form,tipo:e.target.value})}>{[['ENTRADA','Entrada'],['SAIDA_INTERVALO','Saída para pausa'],['VOLTA_INTERVALO','Volta da pausa'],['SAIDA','Saída']].map(x=><option value={x[0]} key={x[0]}>{x[1]}</option>)}</select></label><Field label="Data e hora" type="datetime-local" value={form.ocorridoEm} onChange={v=>setForm({...form,ocorridoEm:v})} required/><button className="btn primary" disabled={busy}>Registrar</button></form></div><section className="panel table-panel"><div className="panel-title"><h3>Últimas marcações</h3></div>{rows.length?<div className="table-wrap"><table><thead><tr><th>FUNCIONÁRIO</th><th>EVENTO</th><th>DATA E HORA</th></tr></thead><tbody>{rows.map(x=><tr key={x.id}><td>{x.funcionario.nome}</td><td><span className="tag blue-tag">{x.tipo.replaceAll('_',' ')}</span></td><td>{new Date(x.ocorridoEm).toLocaleString('pt-BR')}</td></tr>)}</tbody></table></div>:<Empty>Nenhuma marcação</Empty>}</section></>}
-function Leaves(){const[rows,setRows]=useState([]),[people,setPeople]=useState([]),[form,setForm]=useState(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);async function load(){try{const[l,e]=await Promise.all([api('/leaves'),api('/employees?ativo=true')]);setRows(l);setPeople(e)}catch(e){setError(e.message)}}useEffect(()=>{load()},[]);async function save(e){e.preventDefault();setBusy(true);try{await api('/leaves',{method:'POST',body:JSON.stringify(form)});setForm(null);await load()}catch(e){setError(e.message)}finally{setBusy(false)}}async function status(x,s){try{await api(`/leaves/${x.id}/status`,{method:'PATCH',body:JSON.stringify({status:s})});load()}catch(e){setError(e.message)}}return <><Heading title="Férias e ausências" sub="Registre períodos e acompanhe as solicitações." action={<button className="btn primary" onClick={()=>setForm({funcionarioId:'',tipo:'FERIAS',inicio:'',fim:'',motivo:''})}>＋ Nova solicitação</button>}/><Error text={error}/><section className="panel table-panel">{rows.length?<div className="table-wrap"><table><thead><tr><th>FUNCIONÁRIO</th><th>TIPO</th><th>PERÍODO</th><th>MOTIVO</th><th>STATUS</th><th></th></tr></thead><tbody>{rows.map(x=><tr key={x.id}><td>{x.funcionario.nome}</td><td>{x.tipo}</td><td>{new Date(x.inicio).toLocaleDateString('pt-BR')} – {new Date(x.fim).toLocaleDateString('pt-BR')}</td><td>{x.motivo||'—'}</td><td><span className={`tag ${x.status==='APROVADA'?'green-tag':x.status==='REJEITADA'?'rose-tag':'amber-tag'}`}>{x.status}</span></td><td>{x.status==='PENDENTE'&&<div className="row-actions"><button className="text-btn" onClick={()=>status(x,'APROVADA')}>Aprovar</button><button className="text-btn danger-text" onClick={()=>status(x,'REJEITADA')}>Recusar</button></div>}</td></tr>)}</tbody></table></div>:<Empty>Nenhuma solicitação cadastrada</Empty>}</section>{form&&<Modal title="Nova solicitação" onClose={()=>setForm(null)}><form className="form-grid" onSubmit={save}><Select label="Funcionário" value={form.funcionarioId} options={people} onChange={v=>setForm({...form,funcionarioId:v})} required/><label className="field"><span>Tipo</span><select value={form.tipo} onChange={e=>setForm({...form,tipo:e.target.value})}>{[['FERIAS','Férias'],['ATESTADO','Atestado'],['FALTA','Falta'],['LICENCA','Licença'],['OUTRO','Outro']].map(x=><option value={x[0]} key={x[0]}>{x[1]}</option>)}</select></label><Field label="Início" type="date" value={form.inicio} onChange={v=>setForm({...form,inicio:v})} required/><Field label="Fim" type="date" value={form.fim} onChange={v=>setForm({...form,fim:v})} required/><Field label="Observação" value={form.motivo} onChange={v=>setForm({...form,motivo:v})}/><Actions onCancel={()=>setForm(null)} busy={busy}/></form></Modal>}</>}
-function Users({current}){const[rows,setRows]=useState([]),[form,setForm]=useState(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);async function load(){try{setRows(await api('/users'))}catch(e){setError(e.message)}}useEffect(()=>{load()},[]);async function save(e){e.preventDefault();setBusy(true);try{await api('/users',{method:'POST',body:JSON.stringify(form)});setForm(null);load()}catch(e){setError(e.message)}finally{setBusy(false)}}async function toggle(x){try{await api(`/users/${x.id}`,{method:'PATCH',body:JSON.stringify({ativo:!x.ativo})});load()}catch(e){setError(e.message)}}return <><Heading title="Acessos ao sistema" sub="Contas administrativas; conceda acesso apenas a pessoas autorizadas." action={<button className="btn primary" onClick={()=>setForm({nome:'',email:'',senha:'',funcao:'RH'})}>＋ Novo acesso</button>}/><Error text={error}/><section className="panel table-panel">{rows.length?<div className="table-wrap"><table><thead><tr><th>PESSOA</th><th>PERFIL</th><th>STATUS</th><th></th></tr></thead><tbody>{rows.map(x=><tr key={x.id}><td><strong>{x.nome}</strong><small className="block">{x.email}</small></td><td>{x.funcao==='ADMIN'?'Administrador':'RH'}</td><td>{x.ativo?'Ativo':'Inativo'}</td><td>{x.id!==current.id&&<button className="text-btn danger-text" onClick={()=>toggle(x)}>{x.ativo?'Desativar':'Reativar'}</button>}</td></tr>)}</tbody></table></div>:<Empty>Carregando acessos…</Empty>}</section>{form&&<Modal title="Criar acesso" onClose={()=>setForm(null)}><form className="form-grid" onSubmit={save}><Field label="Nome" value={form.nome} onChange={v=>setForm({...form,nome:v})} required/><Field label="E-mail" type="email" value={form.email} onChange={v=>setForm({...form,email:v})} required/><Field label="Senha inicial · mínimo 12 caracteres" type="password" value={form.senha} onChange={v=>setForm({...form,senha:v})} required/><label className="field"><span>Perfil</span><select value={form.funcao} onChange={e=>setForm({...form,funcao:e.target.value})}><option value="RH">RH</option><option value="ADMIN">Administrador</option></select></label><Actions onCancel={()=>setForm(null)} busy={busy}/></form></Modal>}</>}
-function Reports(){const[error,setError]=useState('');async function download(path,file){setError('');try{const r=await api(path);const url=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=url;a.download=file;a.click();URL.revokeObjectURL(url)}catch(e){setError(e.message)}}const reports=[['▤','EQUIPE','Quadro de funcionários','Nome, contato, cargo, departamento, jornada, admissão e situação.','/reports/employees.csv','funcionarios.csv'],['◷','JORNADA','Espelho de ponto','Marcações por dia, horas líquidas estimadas e indicação de pontos incompletos.','/reports/attendance.csv','espelho-de-ponto.csv'],['✳','AFASTAMENTOS','Férias e ausências','Períodos, tipos, situação e pessoa vinculada.','/reports/leaves.csv','ferias-e-ausencias.csv']];return <><Heading title="Relatórios" sub="Exporte os dados locais para análise."/><Error text={error}/><div className="report-grid">{reports.map(x=><div className="report-card" key={x[2]}><div className="report-icon">{x[0]}</div><span className="eyebrow">{x[1]}</span><h3>{x[2]}</h3><p>{x[3]}</p><button className="btn secondary" onClick={()=>download(x[4],x[5])}>Baixar CSV ↓</button></div>)}</div><p className="privacy-help">Os relatórios podem conter dados pessoais. Guarde-os em local protegido.</p></>}
+function App() {
+  const [user, setUser] = useState(null);
+  const [page, setPage] = useState('dashboard');
+  const [boot, setBoot] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (!sessionStorage.getItem('rh_token')) {
+      setBoot(false);
+      return;
+    }
+    api('/auth/me')
+      .then(setUser)
+      .catch(() => sessionStorage.removeItem('rh_token'))
+      .finally(() => setBoot(false));
+  }, []);
+
+  async function login(email, senha) {
+    const result = await api('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, senha }),
+    });
+    sessionStorage.setItem('rh_token', result.token);
+    setUser(result.user);
+  }
+
+  function logout() {
+    sessionStorage.removeItem('rh_token');
+    setUser(null);
+  }
+
+  if (boot) return <div className="loading">Abrindo seu espaço de gestão…</div>;
+  if (!user) return <Login onLogin={login} />;
+
+  const pages = {
+    dashboard: <Dashboard go={setPage} />,
+    employees: <Employees />,
+    departments: <CatalogPage kind="departments" title="Departamentos" singular="departamento" />,
+    roles: <CatalogPage kind="roles" title="Cargos" singular="cargo" />,
+    schedules: <CatalogPage kind="schedules" title="Jornadas" singular="jornada" />,
+    attendance: <Attendance />,
+    leaves: <Leaves />,
+    users: <Users current={user} />,
+    reports: <Reports />,
+    audit: <Audit />,
+  };
+
+  return (
+    <div className="shell">
+      <aside className="sidebar">
+        <div className="brand">
+          <span className="brand-icon">g</span>
+          <span>
+            gestão<span className="brand-light">.local</span>
+            <small>PESSOAS & ROTINA</small>
+          </span>
+        </div>
+        <div className="nav-scroll">
+          {groups
+            .filter((group) => group[0] !== 'GESTÃO' || user.funcao === 'ADMIN')
+            .map(([groupName, items]) => (
+              <div className="nav-group" key={groupName}>
+                <p>{groupName}</p>
+                {items.map(([key, label, icon]) => (
+                  <button
+                    key={key}
+                    className={`nav-item ${page === key ? 'selected' : ''}`}
+                    onClick={() => setPage(key)}
+                  >
+                    <span>{icon}</span>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            ))}
+        </div>
+        <div className="sidebar-bottom">
+          <div className="local-badge">
+            <i /> Dados armazenados neste computador
+          </div>
+          <div className="user-mini">
+            <div className="avatar">{user.nome[0]?.toUpperCase()}</div>
+            <div className="user-info">
+              <strong>{user.nome}</strong>
+              <small>{user.funcao === 'ADMIN' ? 'Administrador' : 'RH'}</small>
+            </div>
+            <button className="text-btn" onClick={() => setShowPassword(true)}>
+              Senha
+            </button>
+            <button className="icon-btn" title="Sair" onClick={logout}>
+              ↗
+            </button>
+          </div>
+        </div>
+      </aside>
+      <main className="main">
+        <header className="topbar">
+          <div>
+            <span className="eyebrow">GESTÃO DE PESSOAS</span>
+            <h1>{titleFor[page]}</h1>
+          </div>
+          <div className="top-actions">
+            <span className="local-chip">● Ambiente local</span>
+            <span className="date-chip">
+              {new Intl.DateTimeFormat('pt-BR', {
+                weekday: 'short',
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+              }).format(new Date())}
+            </span>
+          </div>
+        </header>
+        <div className="content">{pages[page] || pages.dashboard}</div>
+        <footer className="app-footer">
+          Gestão local · Dados pessoais ficam no banco deste computador
+        </footer>
+      </main>
+      {showPassword && (
+        <PasswordChange
+          onClose={() => setShowPassword(false)}
+          onChanged={(updatedUser) => setUser(updatedUser)}
+        />
+      )}
+    </div>
+  );
+}
 
 export default App;

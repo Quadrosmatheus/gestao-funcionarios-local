@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "Sistema local de gestão de funcionários, acessos e rotinas de RH.",
   "private": true,
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "concurrently -n API,WEB -c cyan,magenta \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
     "build": "npm run build --prefix frontend",
@@ -13,9 +15,16 @@
     "db:migrate": "npm run db:migrate --prefix backend",
     "db:deploy": "npm run db:deploy --prefix backend",
     "prepare:local": "npm run prepare:local --prefix backend",
-    "admin:create": "npm run admin:create --prefix backend"
+    "admin:create": "npm run admin:create --prefix backend",
+    "backup": "npm run backup --prefix backend",
+    "backup:restore": "npm run backup:restore --prefix backend",
+    "demo:setup": "node scripts/setup-demo.js",
+    "dev:demo": "concurrently -n API,WEB -c cyan,magenta \"npm run dev:demo --prefix backend\" \"npm run dev --prefix frontend\"",
+    "format": "prettier --write \"**/*.{js,jsx,css,json,md,yml}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,css,json,md,yml}\""
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "prettier": "^3.9.9"
   }
 }
