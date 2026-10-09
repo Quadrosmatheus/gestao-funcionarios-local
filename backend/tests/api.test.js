@@ -96,6 +96,63 @@ test('auth, password rotation, role permissions and session revocation', async (
   assert.equal(dashboard.body.resumo.afastados, 1);
   assert.equal(dashboard.body.afastamentos[0].funcionario.nome, 'Funcionário de Teste');
 
+  const futureEmployee = await request(server)
+    .post('/api/employees')
+    .set('Authorization', `Bearer ${changed.body.token}`)
+    .send({ nome: 'Funcionária com Férias Futuras' });
+  assert.equal(futureEmployee.status, 201);
+  const futureStart = new Date(tomorrow);
+  futureStart.setDate(futureStart.getDate() + 5);
+  const futureEnd = new Date(futureStart);
+  futureEnd.setDate(futureEnd.getDate() + 7);
+  await prisma.ausencia.create({
+    data: {
+      funcionarioId: futureEmployee.body.id,
+      tipo: 'FERIAS',
+      inicio: futureStart,
+      fim: futureEnd,
+      status: 'APROVADA',
+    },
+  });
+  const pastStart = new Date(today);
+  pastStart.setDate(pastStart.getDate() - 10);
+  const pastEnd = new Date(pastStart);
+  pastEnd.setDate(pastEnd.getDate() + 2);
+  await prisma.ausencia.create({
+    data: {
+      funcionarioId: employee.body.id,
+      tipo: 'FALTA',
+      inicio: pastStart,
+      fim: pastEnd,
+      status: 'REJEITADA',
+    },
+  });
+  await prisma.ausencia.create({
+    data: {
+      funcionarioId: futureEmployee.body.id,
+      tipo: 'ATESTADO',
+      inicio: today,
+      fim: tomorrow,
+      status: 'PENDENTE',
+    },
+  });
+  const dashboardWithUpcoming = await request(server)
+    .get('/api/dashboard')
+    .set('Authorization', `Bearer ${changed.body.token}`);
+  assert.equal(dashboardWithUpcoming.body.resumo.afastados, 1);
+  assert.equal(dashboardWithUpcoming.body.resumo.totalAusencias, 4);
+  assert.equal(dashboardWithUpcoming.body.afastamentos.length, 4);
+  assert.deepEqual(
+    new Set(dashboardWithUpcoming.body.afastamentos.map((item) => item.status)),
+    new Set(['APROVADA', 'PENDENTE', 'REJEITADA']),
+  );
+  assert.equal(
+    dashboardWithUpcoming.body.afastamentos.find(
+      (item) => item.funcionario.id === futureEmployee.body.id,
+    ).funcionario.nome,
+    'Funcionária com Férias Futuras',
+  );
+
   const role = await request(server)
     .post('/api/roles')
     .set('Authorization', `Bearer ${changed.body.token}`)
@@ -106,6 +163,12 @@ test('auth, password rotation, role permissions and session revocation', async (
     .set('Authorization', `Bearer ${changed.body.token}`);
   assert.equal(archivedRole.status, 200);
   assert.equal(archivedRole.body.ativo, false);
+  const restoredRole = await request(server)
+    .patch(`/api/roles/${role.body.id}`)
+    .set('Authorization', `Bearer ${changed.body.token}`)
+    .send({ nome: role.body.nome, ativo: true });
+  assert.equal(restoredRole.status, 200);
+  assert.equal(restoredRole.body.ativo, true);
 
   const rh = await request(server)
     .post('/api/users')

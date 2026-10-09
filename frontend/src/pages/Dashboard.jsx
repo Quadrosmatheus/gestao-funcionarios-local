@@ -25,7 +25,13 @@ export function Dashboard({ go }) {
       <div className="stats-grid">
         {[
           ['PESSOAS ATIVAS', stats?.ativos, 'No quadro de funcionários', '♙', ''],
-          ['EM AFASTAMENTO', stats?.afastados, 'Pessoas ausentes hoje', '◷', 'amber'],
+          [
+            'FÉRIAS E AUSÊNCIAS',
+            stats?.totalAusencias,
+            'Todos os registros cadastrados',
+            '◷',
+            'amber',
+          ],
           ['PONTO DE HOJE', stats?.registrosPontoHoje, 'Marcações registradas', '◉', 'blue'],
           ['PENDÊNCIAS', stats?.solicitacoesPendentes, 'Solicitações para revisar', '▤', 'rose'],
         ].map((x) => (
@@ -69,7 +75,7 @@ export function Dashboard({ go }) {
           <div className="panel-title">
             <div>
               <span className="eyebrow">ROTINA</span>
-              <h3>Afastamentos de hoje</h3>
+              <h3>Férias e ausências</h3>
             </div>
             <button className="text-btn" onClick={() => go('leaves')}>
               Ver férias e ausências →
@@ -82,16 +88,22 @@ export function Dashboard({ go }) {
                   <div className="avatar soft">{x.funcionario.nome[0]}</div>
                   <div className="grow">
                     <strong>{x.funcionario.nome}</strong>
-                    <small>{x.tipo === 'FERIAS' ? 'Férias' : 'Afastamento aprovado'}</small>
+                    <small>
+                      {x.tipo} · {new Date(x.inicio).toLocaleDateString('pt-BR')} –{' '}
+                      {new Date(x.fim).toLocaleDateString('pt-BR')}
+                    </small>
+                    {x.motivo && <small>{x.motivo}</small>}
                   </div>
-                  <span className="tag amber-tag">
-                    Até {new Date(x.fim).toLocaleDateString('pt-BR')}
+                  <span
+                    className={`tag ${x.status === 'APROVADA' ? 'green-tag' : x.status === 'REJEITADA' ? 'rose-tag' : 'amber-tag'}`}
+                  >
+                    {x.status}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <Empty>{d ? 'Ninguém afastado hoje' : 'Carregando dados…'}</Empty>
+            <Empty>{d ? 'Nenhuma solicitação cadastrada' : 'Carregando dados…'}</Empty>
           )}
         </section>
         <section className="panel side-note">

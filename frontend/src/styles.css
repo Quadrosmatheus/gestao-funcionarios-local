@@ -608,6 +608,17 @@ td strong {
   font-weight: 750;
   white-space: nowrap;
 }
+.catalog-restore-btn {
+  padding: 7px 9px;
+  border: 1px solid #d7e8db;
+  color: #34744e;
+  font-size: 10px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.catalog-restore-btn:hover {
+  background: #eaf5ed;
+}
 .empty {
   display: flex;
   flex-direction: column;
@@ -1269,6 +1280,10 @@ td strong {
 .shell[data-theme='dark'] .icon-btn:hover {
   background: #263b2d;
   color: #e2eee6;
+}
+.shell[data-theme='dark'] .catalog-restore-btn {
+  border-color: #3b5945;
+  color: #a9d4b3;
 }
 .shell[data-theme='dark'] th {
   background: #17251c;

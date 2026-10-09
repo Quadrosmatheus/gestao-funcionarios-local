@@ -87,6 +87,17 @@ export function CatalogPage({ kind, title, singular }) {
       setError(e.message);
     }
   }
+  async function reactivate(x) {
+    try {
+      await api(`/${cfg.path}/${x.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ ...x, ativo: true }),
+      });
+      await load();
+    } catch (e) {
+      setError(e.message);
+    }
+  }
   return (
     <>
       <Heading
@@ -159,6 +170,16 @@ export function CatalogPage({ kind, title, singular }) {
                             onClick={() => deactivate(x)}
                           >
                             {kind === 'roles' ? 'Excluir' : '⌑'}
+                          </button>
+                        )}
+                        {kind === 'roles' && !x.ativo && (
+                          <button
+                            className="icon-btn catalog-restore-btn"
+                            title="Reativar cargo"
+                            aria-label={`Reativar cargo ${x.nome}`}
+                            onClick={() => reactivate(x)}
+                          >
+                            Reativar
                           </button>
                         )}
                       </div>

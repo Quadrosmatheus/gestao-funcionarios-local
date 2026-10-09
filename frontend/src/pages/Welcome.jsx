@@ -1,4 +1,22 @@
-export function Welcome({ onLogin, onCreateAccount }) {
+import { useState } from 'react';
+import { Error } from '../components/ui';
+
+export function Welcome({ onLogin, onCreateAccount, demoMode }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  async function enter() {
+    setBusy(true);
+    setError('');
+    try {
+      await onLogin();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <main className="welcome-page">
       <header className="welcome-topbar">
@@ -27,13 +45,15 @@ export function Welcome({ onLogin, onCreateAccount }) {
             lugar.
           </p>
           <div className="welcome-actions">
-            <button className="btn primary" onClick={onLogin}>
-              Entrar no sistema <span>→</span>
+            <button className="btn primary" onClick={enter} disabled={busy}>
+              {busy ? 'Abrindo painel…' : demoMode ? 'Entrar no painel' : 'Entrar no sistema'}{' '}
+              <span>→</span>
             </button>
             <button className="btn welcome-secondary" onClick={onCreateAccount}>
               Criar conta
             </button>
           </div>
+          <Error text={error} />
           <div className="secure-note">▣ Acesso protegido · Dados guardados neste computador</div>
         </div>
         <div className="welcome-visual" aria-label="Resumo das ferramentas de gestão">

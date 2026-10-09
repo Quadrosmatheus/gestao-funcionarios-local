@@ -93,13 +93,8 @@ router.get('/dashboard', ...staffOnly, async (_req, res, next) => {
       await Promise.all([
         prisma.funcionario.count({ where: { ativo: true, desligamentoEm: null } }),
         prisma.ausencia.findMany({
-          where: {
-            status: 'APROVADA',
-            inicio: { lt: tomorrow },
-            fim: { gte: today },
-          },
           include: { funcionario: { select: { id: true, nome: true } } },
-          orderBy: [{ inicio: 'asc' }, { funcionario: { nome: 'asc' } }],
+          orderBy: [{ status: 'asc' }, { inicio: 'desc' }],
         }),
         prisma.departamento.count({ where: { ativo: true } }),
         prisma.cargo.count({ where: { ativo: true } }),
@@ -115,17 +110,22 @@ router.get('/dashboard', ...staffOnly, async (_req, res, next) => {
     res.json({
       resumo: {
         ativos,
-        afastados: afastamentos.length,
+        afastados: afastamentos.filter(
+          (item) => item.status === 'APROVADA' && item.inicio < tomorrow && item.fim >= today,
+        ).length,
+        totalAusencias: afastamentos.length,
         departamentos,
         cargos,
         registrosPontoHoje: hoje,
         solicitacoesPendentes: pendentes,
       },
-      afastamentos: afastamentos.map(({ id, tipo, inicio, fim, funcionario }) => ({
+      afastamentos: afastamentos.map(({ id, tipo, inicio, fim, status, motivo, funcionario }) => ({
         id,
         tipo,
         inicio,
         fim,
+        status,
+        motivo,
         funcionario,
       })),
       recentes,

@@ -87,8 +87,9 @@ function App() {
         </button>
         {publicPage === 'welcome' && (
           <Welcome
-            onLogin={() => setPublicPage('login')}
+            onLogin={() => (demoMode ? enterDemo() : setPublicPage('login'))}
             onCreateAccount={() => setPublicPage('register')}
+            demoMode={demoMode}
           />
         )}
         {publicPage === 'login' && (
