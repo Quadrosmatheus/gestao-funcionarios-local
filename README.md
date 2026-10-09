@@ -4,6 +4,14 @@ Aplicação local para organizar cadastros de funcionários e rotinas básicas d
 
 > Projeto demonstrativo e de uso local. Não substitui folha de pagamento, assessoria jurídica/trabalhista nem sistema de registro de ponto homologado. Não use dados reais sem avaliar a política de privacidade, controle de acesso, retenção e cópias de segurança da sua organização.
 
+## Capturas de tela
+
+Capturas feitas com dados fictícios de demonstração.
+
+![Painel do sistema](https://github.com/user-attachments/assets/28d9b268-1d2c-46b2-a591-fb14ee574168)
+
+![Lista de funcionários](https://github.com/user-attachments/assets/32c6df94-25aa-4130-9089-f70de2cb9388)
+
 ## O que o sistema oferece
 
 - Painel com resumo de funcionários, ausências, registros de ponto e pendências.
@@ -74,21 +82,21 @@ Aplicação local para organizar cadastros de funcionários e rotinas básicas d
 
 ## Comandos úteis
 
-| Comando                | Descrição                                             |
-| ---------------------- | ----------------------------------------------------- |
-| `npm run dev`          | Inicia API e interface para desenvolvimento           |
-| `npm run build`        | Gera a interface de produção em `frontend/dist/`      |
-| `npm start`            | Inicia a API e serve o build, se existir              |
-| `npm test`             | Executa testes de domínio e integração da API         |
-| `npm run db:generate`  | Gera o cliente Prisma                                 |
-| `npm run db:deploy`    | Aplica migrações existentes                           |
-| `npm run db:migrate`   | Cria/aplica migrações no desenvolvimento              |
-| `npm run admin:create` | Cria o primeiro administrador                         |
-| `npm run format`       | Formata os fontes com Prettier                        |
-| `npm run format:check` | Confere o padrão de formatação                        |
-| `npm run backup`       | Salva um snapshot do banco e dos anexos               |
-| `npm run demo:setup`   | Cria uma base separada com dados totalmente fictícios |
-| `npm run dev:demo`     | Inicia a demonstração isolada em localhost            |
+| Comando | Descrição |
+| --- | --- |
+| `npm run dev` | Inicia API e interface para desenvolvimento |
+| `npm run build` | Gera a interface de produção em `frontend/dist/` |
+| `npm start` | Inicia a API e serve o build, se existir |
+| `npm test` | Executa testes de domínio e integração da API |
+| `npm run db:generate` | Gera o cliente Prisma |
+| `npm run db:deploy` | Aplica migrações existentes |
+| `npm run db:migrate` | Cria/aplica migrações no desenvolvimento |
+| `npm run admin:create` | Cria o primeiro administrador |
+| `npm run format` | Formata os fontes com Prettier |
+| `npm run format:check` | Confere o padrão de formatação |
+| `npm run backup` | Salva um snapshot do banco e dos anexos |
+| `npm run demo:setup` | Cria uma base separada com dados totalmente fictícios |
+| `npm run dev:demo` | Inicia a demonstração isolada em localhost |
 
 ## Demonstração com dados fictícios
 
