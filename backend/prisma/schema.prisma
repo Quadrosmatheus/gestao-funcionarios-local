@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int         @id @default(autoincrement())
+  nome         String
+  email        String      @unique
+  senha        String
+  funcao       String      @default("ADMIN")
+  ativo        Boolean     @default(true)
+  criadoEm     DateTime    @default(now())
+  atualizadoEm DateTime    @updatedAt
+  aprovacoes   Ausencia[]  @relation("Aprovador")
+  auditoria    Auditoria[]
+
+  @@map("users")
+}
+
+model Funcionario {
+  id             Int        @id @default(autoincrement())
+  nome           String
+  email          String?    @unique
+  cpf            String?    @unique
+  dataNascimento DateTime?
+  telefone       String?
+  admissaoEm     DateTime   @default(now())
+  desligamentoEm DateTime?
+  cargoId        Int?
+  departamentoId Int?
+  horarioId      Int?
+  cargo          Cargo?       @relation(fields: [cargoId], references: [id], onDelete: SetNull)
+  departamento   Departamento? @relation(fields: [departamentoId], references: [id], onDelete: SetNull)
+  horario        Horario?      @relation(fields: [horarioId], references: [id], onDelete: SetNull)
+  ativo          Boolean    @default(true)
+  criadoEm       DateTime   @default(now())
+  atualizadoEm   DateTime   @updatedAt
+  pontos         Ponto[]
+  ausencias      Ausencia[]
+  documentos     Documento[]
+
+  @@index([nome])
+  @@index([ativo])
+  @@map("funcionarios")
+}
+
+model Cargo {
+  id           Int           @id @default(autoincrement())
+  nome         String        @unique
+  descricao    String?
+  ativo        Boolean       @default(true)
+  criadoEm     DateTime      @default(now())
+  atualizadoEm DateTime      @updatedAt
+  funcionarios Funcionario[]
+  @@map("cargos")
+}
+
+model Departamento {
+  id           Int           @id @default(autoincrement())
+  nome         String        @unique
+  descricao    String?
+  ativo        Boolean       @default(true)
+  criadoEm     DateTime      @default(now())
+  atualizadoEm DateTime      @updatedAt
+  funcionarios Funcionario[]
+  @@map("departamentos")
+}
+
+model Horario {
+  id           Int           @id @default(autoincrement())
+  nome         String        @unique
+  descricao    String?
+  entrada      String
+  saida        String
+  pausaInicio  String?
+  pausaFim     String?
+  ativo        Boolean       @default(true)
+  criadoEm     DateTime      @default(now())
+  atualizadoEm DateTime      @updatedAt
+  funcionarios Funcionario[]
+  @@map("horarios")
+}
+
+model Ponto {
+  id            Int         @id @default(autoincrement())
+  funcionarioId Int
+  tipo          String
+  ocorridoEm    DateTime    @default(now())
+  observacao    String?
+  criadoPorId   Int?
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  @@index([funcionarioId, ocorridoEm])
+  @@map("pontos")
+}
+
+model Ausencia {
+  id            Int         @id @default(autoincrement())
+  funcionarioId Int
+  tipo          String
+  inicio        DateTime
+  fim           DateTime
+  motivo        String?
+  status        String      @default("PENDENTE")
+  aprovadoPorId Int?
+  criadoEm      DateTime    @default(now())
+  atualizadoEm  DateTime   @updatedAt
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  aprovador     User?       @relation("Aprovador", fields: [aprovadoPorId], references: [id], onDelete: SetNull)
+  @@index([funcionarioId, inicio, fim])
+  @@map("ausencias")
+}
+
+model Documento {
+  id            Int         @id @default(autoincrement())
+  funcionarioId Int
+  nomeOriginal  String
+  nomeArquivo   String      @unique
+  mimeType      String
+  tamanho       Int
+  enviadoEm     DateTime    @default(now())
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  @@map("documentos")
+}
+
+model Auditoria {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int?
+  acao      String
+  entidade  String
+  entidadeId String?
+  detalhes  String?
+  ocorridoEm DateTime @default(now())
+  usuario   User?    @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  @@index([ocorridoEm])
+  @@map("auditoria")
+}

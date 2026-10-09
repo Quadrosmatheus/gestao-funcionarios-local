@@ -1,0 +1,30 @@
+{
+  "name": "gerenciamento-funcionarios-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "prepare:local": "node scripts/prepare-local.js",
+    "db:generate": "npm run prepare:local && prisma generate",
+    "db:migrate": "npm run prepare:local && prisma migrate dev",
+    "db:deploy": "npm run prepare:local && prisma migrate deploy",
+    "admin:create": "npm run prepare:local && node scripts/create-admin.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
+  }
+}
