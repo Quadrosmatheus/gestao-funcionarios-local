@@ -28,6 +28,83 @@ router.post('/login', async (req, res, next) => {
   }
 });
 
+router.get('/register/status', async (_req, res, next) => {
+  try {
+    res.json({ open: (await prisma.user.count()) === 0, demo: process.env.APP_MODE === 'demo' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/demo', async (_req, res, next) => {
+  try {
+    if (process.env.APP_MODE !== 'demo')
+      return res.status(404).json({ error: 'Rota não encontrada.' });
+    const user = await prisma.user.findUnique({ where: { email: 'demo.admin@local.test' } });
+    if (!user?.ativo)
+      return res.status(409).json({ error: 'A conta de demonstração não está pronta.' });
+    const token = createToken(user);
+    await prisma.auditoria.create({
+      data: {
+        usuarioId: user.id,
+        acao: 'ENTRAR_DEMONSTRACAO',
+        entidade: 'User',
+        entidadeId: String(user.id),
+      },
+    });
+    res.json({
+      token,
+      user: { id: user.id, nome: user.nome, email: user.email, funcao: user.funcao },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/register', async (req, res, next) => {
+  try {
+    const nome = String(req.body.nome || '').trim();
+    const email = String(req.body.email || '')
+      .trim()
+      .toLowerCase();
+    const senha = String(req.body.senha || '');
+    if (nome.length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || senha.length < 12)
+      return res
+        .status(400)
+        .json({ error: 'Informe nome, e-mail válido e senha com pelo menos 12 caracteres.' });
+
+    const user = await prisma.$transaction(async (tx) => {
+      if (await tx.user.count()) {
+        const error = new Error(
+          'Já existe uma conta neste computador. Peça ao administrador para criar seu acesso.',
+        );
+        error.status = 409;
+        throw error;
+      }
+      return tx.user.create({
+        data: { nome, email, senha: await bcrypt.hash(senha, 12), funcao: 'ADMIN' },
+      });
+    });
+    await prisma.auditoria.create({
+      data: {
+        usuarioId: user.id,
+        acao: 'CRIAR_CONTA_INICIAL',
+        entidade: 'User',
+        entidadeId: String(user.id),
+      },
+    });
+    res.status(201).json({
+      token: createToken(user),
+      user: { id: user.id, nome: user.nome, email: user.email, funcao: user.funcao },
+    });
+  } catch (error) {
+    if (error.status) return res.status(error.status).json({ error: error.message });
+    if (error.code === 'P2002')
+      return res.status(409).json({ error: 'Este e-mail já está cadastrado.' });
+    next(error);
+  }
+});
+
 router.patch('/password', authRequired, async (req, res, next) => {
   try {
     const currentPassword = String(req.body.currentPassword || '');

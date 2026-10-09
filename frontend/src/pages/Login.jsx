@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { api } from '../services/api';
 import { Error } from '../components/ui';
 
-export function Login({ onLogin }) {
+export function Login({ onLogin, onEnterDemo, demoMode, onBack, onCreateAccount }) {
   const [email, setEmail] = useState(''),
     [senha, setSenha] = useState(''),
     [error, setError] = useState(''),
@@ -12,7 +12,8 @@ export function Login({ onLogin }) {
     setBusy(true);
     setError('');
     try {
-      await onLogin(email, senha);
+      if (demoMode) await onEnterDemo();
+      else await onLogin(email, senha);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -47,34 +48,53 @@ export function Login({ onLogin }) {
       </div>
       <div className="login-main">
         <form className="login-card" onSubmit={submit}>
+          <button className="text-btn auth-back" type="button" onClick={onBack}>
+            ← Voltar ao início
+          </button>
           <div className="login-mobile-brand">gestão.local</div>
           <span className="eyebrow">BEM-VINDO DE VOLTA</span>
           <h2>Acesse seu painel</h2>
-          <p>Entre com a conta administrativa configurada neste computador.</p>
+          <p>
+            {demoMode
+              ? 'A demonstração usa dados fictícios. Entre no painel sem informar e-mail ou senha.'
+              : 'Entre com a conta administrativa configurada neste computador.'}
+          </p>
           {error && <Error text={error} />}
-          <label>
-            E-mail
-            <input
-              type="email"
-              autoComplete="username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </label>
-          <label>
-            Senha
-            <input
-              type="password"
-              autoComplete="current-password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              required
-            />
-          </label>
+          {!demoMode && (
+            <>
+              <label>
+                E-mail
+                <input
+                  type="email"
+                  autoComplete="username"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                Senha
+                <input
+                  type="password"
+                  autoComplete="current-password"
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  required
+                />
+              </label>
+            </>
+          )}
           <button className="btn primary full" disabled={busy}>
             {busy ? 'Entrando…' : 'Entrar no painel'} <span>→</span>
           </button>
+          {!demoMode && (
+            <p className="auth-switch">
+              Ainda não tem uma conta inicial?{' '}
+              <button type="button" className="text-btn" onClick={onCreateAccount}>
+                Criar conta
+              </button>
+            </p>
+          )}
           <div className="secure-note">▣ Acesso protegido e restrito ao ambiente local</div>
         </form>
       </div>

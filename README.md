@@ -107,9 +107,9 @@ npm run demo:setup
 npm run dev:demo
 ```
 
-O primeiro comando cria `backend/data/demo.db`, aplica as migrações, inclui nomes e contatos inventados e mostra uma senha aleatória temporária no terminal. Entre com `demo.admin@local.test` e essa senha em `http://127.0.0.1:5173`. A demonstração nunca utiliza o banco padrão `funcionarios.db`. Para recriá-la, pare os servidores e apague apenas `backend/data/demo.db` antes de executar `npm run demo:setup` novamente.
+O primeiro comando cria `backend/data/demo.db`, aplica as migrações e inclui nomes e contatos inventados. Abra `http://127.0.0.1:5173`, escolha **Entrar no sistema** e depois **Entrar no painel**. A conta fictícia entra sem e-mail ou senha; esse acesso direto é habilitado somente em modo demo. A demonstração nunca utiliza o banco padrão `funcionarios.db`. Para recriá-la, pare os servidores e apague apenas `backend/data/demo.db` antes de executar `npm run demo:setup` novamente.
 
-O repositório contém o código e uma demonstração local; não há versão hospedada para acesso público. Cada pessoa deve gerar a própria base demo e usar a senha temporária que o comando exibe. Não publique senhas, tokens, banco, anexos ou backups.
+O repositório contém o código e uma demonstração local; não há versão hospedada para acesso público. Não publique tokens, banco, anexos ou backups.
 
 ## Apresentação pública
 

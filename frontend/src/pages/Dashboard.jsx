@@ -25,7 +25,7 @@ export function Dashboard({ go }) {
       <div className="stats-grid">
         {[
           ['PESSOAS ATIVAS', stats?.ativos, 'No quadro de funcionários', '♙', ''],
-          ['EM AFASTAMENTO', stats?.afastados, 'Ausência aprovada hoje', '◷', 'amber'],
+          ['EM AFASTAMENTO', stats?.afastados, 'Pessoas ausentes hoje', '◷', 'amber'],
           ['PONTO DE HOJE', stats?.registrosPontoHoje, 'Marcações registradas', '◉', 'blue'],
           ['PENDÊNCIAS', stats?.solicitacoesPendentes, 'Solicitações para revisar', '▤', 'rose'],
         ].map((x) => (
@@ -63,6 +63,35 @@ export function Dashboard({ go }) {
             </div>
           ) : (
             <Empty>{d ? 'Nenhum funcionário cadastrado' : 'Carregando dados…'}</Empty>
+          )}
+        </section>
+        <section className="panel">
+          <div className="panel-title">
+            <div>
+              <span className="eyebrow">ROTINA</span>
+              <h3>Afastamentos de hoje</h3>
+            </div>
+            <button className="text-btn" onClick={() => go('leaves')}>
+              Ver férias e ausências →
+            </button>
+          </div>
+          {d?.afastamentos?.length ? (
+            <div className="recent-list">
+              {d.afastamentos.map((x) => (
+                <div className="recent-row" key={x.id}>
+                  <div className="avatar soft">{x.funcionario.nome[0]}</div>
+                  <div className="grow">
+                    <strong>{x.funcionario.nome}</strong>
+                    <small>{x.tipo === 'FERIAS' ? 'Férias' : 'Afastamento aprovado'}</small>
+                  </div>
+                  <span className="tag amber-tag">
+                    Até {new Date(x.fim).toLocaleDateString('pt-BR')}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Empty>{d ? 'Ninguém afastado hoje' : 'Carregando dados…'}</Empty>
           )}
         </section>
         <section className="panel side-note">

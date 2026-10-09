@@ -7,6 +7,8 @@ import { Dashboard } from './pages/Dashboard';
 import { Employees } from './pages/Employees';
 import { Leaves } from './pages/Leaves';
 import { Login } from './pages/Login';
+import { Welcome } from './pages/Welcome';
+import { CreateAccount } from './pages/CreateAccount';
 import { Reports } from './pages/Reports';
 import { PasswordChange } from './pages/PasswordChange';
 import { Users } from './pages/Users';
@@ -17,15 +19,28 @@ function App() {
   const [page, setPage] = useState('dashboard');
   const [boot, setBoot] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [publicPage, setPublicPage] = useState('welcome');
+  const [theme, setTheme] = useState(() => localStorage.getItem('gestao-theme') || 'light');
+  const [demoMode, setDemoMode] = useState(false);
 
   useEffect(() => {
-    if (!sessionStorage.getItem('rh_token')) {
-      setBoot(false);
-      return;
-    }
-    api('/auth/me')
-      .then(setUser)
-      .catch(() => sessionStorage.removeItem('rh_token'))
+    localStorage.setItem('gestao-theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    const token = sessionStorage.getItem('rh_token');
+    const status = api('/auth/register/status').catch(() => ({ demo: false }));
+    const currentUser = token
+      ? api('/auth/me').catch(() => {
+          sessionStorage.removeItem('rh_token');
+          return null;
+        })
+      : Promise.resolve(null);
+    Promise.all([status, currentUser])
+      .then(([authStatus, sessionUser]) => {
+        setDemoMode(authStatus.demo === true);
+        setUser(sessionUser);
+      })
       .finally(() => setBoot(false));
   }, []);
 
@@ -38,13 +53,63 @@ function App() {
     setUser(result.user);
   }
 
+  async function register(nome, email, senha) {
+    const result = await api('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ nome, email, senha }),
+    });
+    sessionStorage.setItem('rh_token', result.token);
+    setUser(result.user);
+  }
+
+  async function enterDemo() {
+    const result = await api('/auth/demo', { method: 'POST', body: JSON.stringify({}) });
+    sessionStorage.setItem('rh_token', result.token);
+    setUser(result.user);
+  }
+
   function logout() {
     sessionStorage.removeItem('rh_token');
     setUser(null);
   }
 
   if (boot) return <div className="loading">Abrindo seu espaço de gestão…</div>;
-  if (!user) return <Login onLogin={login} />;
+  if (!user) {
+    return (
+      <div className="public-app" data-theme={theme}>
+        <button
+          className="theme-toggle"
+          type="button"
+          onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+          aria-label={theme === 'light' ? 'Ativar tema escuro' : 'Ativar tema claro'}
+        >
+          {theme === 'light' ? '☾ Tema escuro' : '☀ Tema claro'}
+        </button>
+        {publicPage === 'welcome' && (
+          <Welcome
+            onLogin={() => setPublicPage('login')}
+            onCreateAccount={() => setPublicPage('register')}
+          />
+        )}
+        {publicPage === 'login' && (
+          <Login
+            onLogin={login}
+            demoMode={demoMode}
+            onEnterDemo={enterDemo}
+            onBack={() => setPublicPage('welcome')}
+            onCreateAccount={() => setPublicPage('register')}
+          />
+        )}
+        {publicPage === 'register' && (
+          <CreateAccount
+            onRegister={register}
+            onBack={() => setPublicPage('welcome')}
+            onLogin={() => setPublicPage('login')}
+          />
+        )}
+      </div>
+    );
+  }
 
   const pages = {
     dashboard: <Dashboard go={setPage} />,
@@ -60,7 +125,7 @@ function App() {
   };
 
   return (
-    <div className="shell">
+    <div className="shell" data-theme={theme}>
       <aside className="sidebar">
         <div className="brand">
           <span className="brand-icon">g</span>
@@ -115,6 +180,14 @@ function App() {
             <h1>{titleFor[page]}</h1>
           </div>
           <div className="top-actions">
+            <button
+              className="theme-toggle-panel"
+              type="button"
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              aria-label={theme === 'light' ? 'Ativar tema escuro' : 'Ativar tema claro'}
+            >
+              {theme === 'light' ? '☾ Modo escuro' : '☀ Modo claro'}
+            </button>
             <span className="local-chip">● Ambiente local</span>
             <span className="date-chip">
               {new Intl.DateTimeFormat('pt-BR', {

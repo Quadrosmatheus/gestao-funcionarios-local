@@ -23,6 +23,20 @@ app.use(
   '/api/auth/login',
   rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false }),
 );
+app.use(
+  '/api/auth/register',
+  rateLimit({
+    windowMs: 60 * 60 * 1000,
+    limit: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => req.method !== 'POST',
+  }),
+);
+app.use(
+  '/api/auth/demo',
+  rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: true, legacyHeaders: false }),
+);
 app.get('/api/health', async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;

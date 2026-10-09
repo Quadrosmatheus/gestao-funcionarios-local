@@ -89,11 +89,17 @@ router.get('/dashboard', ...staffOnly, async (_req, res, next) => {
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const [ativos, afastados, departamentos, cargos, hoje, pendentes, recentes] = await Promise.all(
-      [
+    const [ativos, afastamentos, departamentos, cargos, hoje, pendentes, recentes] =
+      await Promise.all([
         prisma.funcionario.count({ where: { ativo: true, desligamentoEm: null } }),
-        prisma.ausencia.count({
-          where: { status: 'APROVADA', inicio: { lte: tomorrow }, fim: { gte: today } },
+        prisma.ausencia.findMany({
+          where: {
+            status: 'APROVADA',
+            inicio: { lt: tomorrow },
+            fim: { gte: today },
+          },
+          include: { funcionario: { select: { id: true, nome: true } } },
+          orderBy: [{ inicio: 'asc' }, { funcionario: { nome: 'asc' } }],
         }),
         prisma.departamento.count({ where: { ativo: true } }),
         prisma.cargo.count({ where: { ativo: true } }),
@@ -105,17 +111,23 @@ router.get('/dashboard', ...staffOnly, async (_req, res, next) => {
           orderBy: { criadoEm: 'desc' },
           include: { cargo: true, departamento: true },
         }),
-      ],
-    );
+      ]);
     res.json({
       resumo: {
         ativos,
-        afastados,
+        afastados: afastamentos.length,
         departamentos,
         cargos,
         registrosPontoHoje: hoje,
         solicitacoesPendentes: pendentes,
       },
+      afastamentos: afastamentos.map(({ id, tipo, inicio, fim, funcionario }) => ({
+        id,
+        tipo,
+        inicio,
+        fim,
+        funcionario,
+      })),
       recentes,
     });
   } catch (error) {

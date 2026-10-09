@@ -68,6 +68,45 @@ test('auth, password rotation, role permissions and session revocation', async (
     200,
   );
 
+  const employee = await request(server)
+    .post('/api/employees')
+    .set('Authorization', `Bearer ${changed.body.token}`)
+    .send({ nome: 'Funcionário de Teste' });
+  assert.equal(employee.status, 201);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  await prisma.ausencia.create({
+    data: {
+      funcionarioId: employee.body.id,
+      tipo: 'FERIAS',
+      inicio: today,
+      fim: tomorrow,
+      status: 'APROVADA',
+    },
+  });
+  await prisma.funcionario.update({
+    where: { id: employee.body.id },
+    data: { ativo: false },
+  });
+  const dashboard = await request(server)
+    .get('/api/dashboard')
+    .set('Authorization', `Bearer ${changed.body.token}`);
+  assert.equal(dashboard.body.resumo.afastados, 1);
+  assert.equal(dashboard.body.afastamentos[0].funcionario.nome, 'Funcionário de Teste');
+
+  const role = await request(server)
+    .post('/api/roles')
+    .set('Authorization', `Bearer ${changed.body.token}`)
+    .send({ nome: 'Cargo para arquivar' });
+  assert.equal(role.status, 201);
+  const archivedRole = await request(server)
+    .delete(`/api/roles/${role.body.id}`)
+    .set('Authorization', `Bearer ${changed.body.token}`);
+  assert.equal(archivedRole.status, 200);
+  assert.equal(archivedRole.body.ativo, false);
+
   const rh = await request(server)
     .post('/api/users')
     .set('Authorization', `Bearer ${changed.body.token}`)

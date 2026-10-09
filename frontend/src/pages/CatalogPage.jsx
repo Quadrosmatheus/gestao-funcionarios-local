@@ -75,7 +75,11 @@ export function CatalogPage({ kind, title, singular }) {
     }
   }
   async function deactivate(x) {
-    if (!confirm(`Desativar ${x.nome}?`)) return;
+    const confirmation =
+      kind === 'roles'
+        ? `Excluir o cargo ${x.nome}? Ele será arquivado e o histórico dos funcionários será mantido.`
+        : `Desativar ${x.nome}?`;
+    if (!confirm(confirmation)) return;
     try {
       await api(`/${cfg.path}/${x.id}`, { method: 'DELETE' });
       load();
@@ -146,8 +150,15 @@ export function CatalogPage({ kind, title, singular }) {
                           ✎
                         </button>
                         {x.ativo && (
-                          <button className="icon-btn danger-text" onClick={() => deactivate(x)}>
-                            ⌑
+                          <button
+                            className={`icon-btn danger-text ${kind === 'roles' ? 'catalog-delete-btn' : ''}`}
+                            title={kind === 'roles' ? 'Excluir cargo' : 'Desativar'}
+                            aria-label={
+                              kind === 'roles' ? `Excluir cargo ${x.nome}` : `Desativar ${x.nome}`
+                            }
+                            onClick={() => deactivate(x)}
+                          >
+                            {kind === 'roles' ? 'Excluir' : '⌑'}
                           </button>
                         )}
                       </div>

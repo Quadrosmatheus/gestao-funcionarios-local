@@ -96,7 +96,7 @@ export function Employees() {
           </button>
         }
       />
-      <Error text={error} />
+      {!form && <Error text={error} />}
       <div className="toolbar">
         <div className="search">
           <span>⌕</span>
@@ -188,6 +188,14 @@ export function Employees() {
           onClose={() => setForm(null)}
         >
           <form className="form-grid" onSubmit={save}>
+            <p className="form-help">
+              Só o nome completo é obrigatório. Você pode preencher os outros dados depois.
+            </p>
+            {error && (
+              <div className="form-message">
+                <Error text={error} />
+              </div>
+            )}
             <Field
               label="Nome completo"
               value={form.nome}
