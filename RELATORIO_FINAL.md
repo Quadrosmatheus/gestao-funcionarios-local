@@ -35,4 +35,5 @@ A aplicação não criptografa o banco ou anexos em repouso, não oferece recupe
 
 ## GitHub
 
-O repositório novo foi criado como privado, sem README automático nem licença gerada pelo GitHub, para preservar o README local preparado e os direitos reservados. O commit e push serão registrados aqui após a conclusão.
+O repositório novo foi criado como privado, sem README automático nem licença gerada pelo GitHub, para preservar o README local preparado e os direitos reservados. Primeiro commit enviado: `fe2239c` (`Prepare local employee management portfolio repository`), branch `main`.
+
